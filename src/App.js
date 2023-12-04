@@ -7,8 +7,7 @@ import Main from "./components/Main";
 import { CollectionProvider } from "./utils/CollectionContext";
 import { PostProvider } from "./utils/PostContext";
 import { CommunityProvider } from "./utils/CommunityContext";
-import { SortProvider, VotesProvider } from "./utils/SortContext";
-import { SignInMethod } from "firebase/auth";
+import { SortProvider } from "./utils/SortContext";
 import SinglePostPage from "./components/SinglePostPage";
 
 const appRouter = createBrowserRouter([

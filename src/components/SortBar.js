@@ -6,14 +6,8 @@ import { SortContext } from "../utils/SortContext";
 
 const SortBar = () => {
   const { postData, setPostData } = useContext(PostContext);
-  const {
-    sortLatest,
-    setSortLatest,
-    sortOldest,
-    setSortOldest,
-    sortPopular,
-    setSortPopular,
-  } = useContext(SortContext);
+  const { setSortLatest, setSortOldest, setSortPopular } =
+    useContext(SortContext);
   const sortByLatest = () => {
     const sortedByLatest = postData
       .slice()

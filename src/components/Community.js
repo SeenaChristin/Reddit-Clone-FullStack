@@ -14,6 +14,7 @@ const Community = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const fetchData = async () => {
     let result = await fetchCollection(postData, currentUser, "Posts");
