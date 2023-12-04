@@ -5,8 +5,8 @@ import {
   Select,
   MenuItem,
   Tab,
-  TextField,
   Button,
+  Input,
 } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -21,44 +21,16 @@ import { useContext } from "react";
 import { CollectionContext } from "../utils/CollectionContext";
 import { useNavigate } from "react-router-dom";
 import { CommunityContext } from "../utils/CommunityContext";
-
-const PostBody = (props) => {
-  let { title, setTitle, body, setBody, content } = props;
-
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-      }}
-    >
-      <TextField
-        size="small"
-        label="Enter title"
-        sx={{ mb: "1%" }}
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
-      ></TextField>
-      <TextField
-        id="filled-multiline-flexible"
-        label={content}
-        multiline
-        rows={5}
-        maxRows={5}
-        variant="filled"
-        onChange={(event) => setBody(event.target.value)}
-        value={body}
-      ></TextField>
-    </Box>
-  );
-};
+import PostBody from "./PostBody";
+import { storage } from "../services/firebaseConfig";
+import { ref, uploadBytes } from "firebase/storage";
 
 const CreatePost = () => {
   const { currentUser } = useAuth();
   const [value, setValue] = React.useState("1");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
   const { communityData } = useContext(CollectionContext);
   const { selectedComm, setSelectedComm } = useContext(CommunityContext);
   const [loader, setLoader] = useState(false);
@@ -66,6 +38,24 @@ const CreatePost = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedImage(file);
+  };
+
+  const handleUpload = () => {
+    if (selectedImage) {
+      let name = title.replace(" ", "");
+      const imageRef = ref(storage, "img" + name);
+      const metadata = {
+        contentType: "image",
+      };
+      const uploadTask = uploadBytes(imageRef, selectedImage, metadata);
+      console.log(uploadTask);
+    } else {
+      console.error("No image selected");
+    }
   };
 
   const handleAddData = async () => {
@@ -81,7 +71,7 @@ const CreatePost = () => {
       createdAt: new Date(),
       upVote: 0,
       downVote: 0,
-      comments: [],
+      comments: {},
       upVoteUsers: [],
       downVoteUsers: [],
     };
@@ -160,6 +150,7 @@ const CreatePost = () => {
                 >
                   <Tab label="Post" value="1" />
                   <Tab label="URL" value="2" />
+                  <Tab label="Image" value="3" />
                 </TabList>
               </Box>
               <TabPanel value="1" sx={{ pl: "0px" }}>
@@ -172,7 +163,60 @@ const CreatePost = () => {
                 />
               </TabPanel>
               <TabPanel value="2" sx={{ pl: "0px" }}>
-                <PostBody content="Enter Url" />
+                <PostBody
+                  content="Enter Url"
+                  title={title}
+                  setTitle={setTitle}
+                  body={body}
+                  setBody={setBody}
+                />
+              </TabPanel>
+              <TabPanel value="3" sx={{ pl: "0px" }}>
+                <PostBody
+                  content="Whats this image about?"
+                  title={title}
+                  setTitle={setTitle}
+                  body={body}
+                  setBody={setBody}
+                />
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    width: "100%",
+                    alignItems: "center",
+                  }}
+                >
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    sx={{ p: "1%" }}
+                  />
+                  <Button
+                    onClick={handleUpload}
+                    sx={{
+                      width: "20%",
+                      bgcolor: theme.palette.primary.dark,
+                      color: "white",
+                      mt: "1.5%",
+                      mx: "1%",
+                      height: "2%",
+                    }}
+                  >
+                    Upload
+                  </Button>
+                  {selectedImage && (
+                    <div>
+                      <p>Selected Image Preview:</p>
+                      <img
+                        src={URL.createObjectURL(selectedImage)}
+                        alt="Selected"
+                        style={{ maxWidth: "100%", maxHeight: "200px" }}
+                      />
+                    </div>
+                  )}
+                </Box>
               </TabPanel>
             </TabContext>
             <Button

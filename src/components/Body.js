@@ -1,5 +1,5 @@
-import { Container, Box, TextField } from "@mui/material";
-import React, { useEffect } from "react";
+import { Container, Box, TextField, Button } from "@mui/material";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../utils/AuthContext";
 import { theme } from "../utils/theme";
 import AddLinkIcon from "@mui/icons-material/AddLink";
@@ -10,18 +10,34 @@ import { fetchCollection } from "../utils/helper";
 import { useContext } from "react";
 import { PostContext } from "../utils/PostContext";
 import { useParams } from "react-router-dom";
+import { SortContext } from "../utils/SortContext";
+const ITEMS_PER_PAGE = 5;
 
 const Body = () => {
   const { currentUser } = useAuth();
   const { postData, setPostData } = useContext(PostContext);
+  const { sortLatest, sortOldest, sortPopular } = useContext(SortContext);
+  const [currentPage, setCurrentPage] = useState(1);
   const type = useParams("id");
   useEffect(() => {
-    fetchData();
+    if (!(sortLatest || sortOldest || sortPopular)) {
+      fetchData();
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const fetchData = async () => {
     let result = await fetchCollection(postData, currentUser, "Posts");
     setPostData(result);
+  };
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const displayedData = postData.slice(startIndex, endIndex);
+
+  const totalPages = Math.ceil(postData.length / ITEMS_PER_PAGE);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
   return (
     <>
@@ -83,7 +99,7 @@ const Body = () => {
           ) : null}
           <SortBar />
           {!type.id &&
-            postData.map((data) => (
+            displayedData.map((data) => (
               <PostCard
                 key={data.name}
                 id={data.id}
@@ -94,9 +110,41 @@ const Body = () => {
                 createdAt={data.createdAt}
                 upVote={data.upVote}
                 downVote={data.downVote}
+                url={data?.url}
               />
             ))}
         </Container>
+        <div>
+          {!type.id && (
+            <div style={{ margin: "1% 0" }}>
+              <Button
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+                sx={{
+                  "&:hover": {
+                    bgcolor: "#a3c7eb",
+                  },
+                  mx: "1%",
+                }}
+              >
+                Previous
+              </Button>
+              <span>{`Page ${currentPage} of ${totalPages}`}</span>
+              <Button
+                sx={{
+                  mx: "1%",
+                  "&:hover": {
+                    bgcolor: "#a3c7eb",
+                  },
+                }}
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

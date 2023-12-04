@@ -7,7 +7,9 @@ import Main from "./components/Main";
 import { CollectionProvider } from "./utils/CollectionContext";
 import { PostProvider } from "./utils/PostContext";
 import { CommunityProvider } from "./utils/CommunityContext";
-import { VotesProvider } from "./utils/VotesContext";
+import { SortProvider, VotesProvider } from "./utils/SortContext";
+import { SignInMethod } from "firebase/auth";
+import SinglePostPage from "./components/SinglePostPage";
 
 const appRouter = createBrowserRouter([
   {
@@ -26,6 +28,10 @@ const appRouter = createBrowserRouter([
     path: "/submit",
     element: <CreatePost />,
   },
+  {
+    path: "/Post/:id",
+    element: <SinglePostPage />,
+  },
 ]);
 
 function App() {
@@ -34,9 +40,11 @@ function App() {
       <CollectionProvider>
         <PostProvider>
           <CommunityProvider>
-            <div className="App">
-              <RouterProvider router={appRouter} />
-            </div>
+            <SortProvider>
+              <div className="App">
+                <RouterProvider router={appRouter} />
+              </div>
+            </SortProvider>
           </CommunityProvider>
         </PostProvider>
       </CollectionProvider>

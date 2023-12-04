@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Container, Typography } from "@mui/material";
 import UploadIcon from "@mui/icons-material/Upload";
 import DownloadIcon from "@mui/icons-material/Download";
-import { format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../services/firebaseConfig";
 import { useContext } from "react";
@@ -10,12 +10,20 @@ import { PostContext } from "../utils/PostContext";
 import { fetchCollection } from "../utils/helper";
 import { useAuth } from "../utils/AuthContext";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import { useNavigate } from "react-router";
+import { SortContext } from "../utils/SortContext";
+import { storage } from "../services/firebaseConfig";
+import { ref, getMetadata } from "firebase/storage";
+const PATH =
+  "https://firebasestorage.googleapis.com/v0/b/reddit-clone-609eb.appspot.com/o/";
 
 const PostCard = (props) => {
   const { id } = props;
   const { postData, setPostData } = useContext(PostContext);
+  const [imgPath, setImgPath] = useState("");
   const selectedPost = postData.filter((data) => data.id === id);
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const {
     name,
     description,
@@ -26,10 +34,18 @@ const PostCard = (props) => {
     downVote,
     upVoteUsers,
     downVoteUsers,
+    comments,
   } = selectedPost[0];
-  if (id === "1701424321862") {
-    console.log(upVote + " " + downVote);
-  }
+  let title = name.replace(" ", "");
+  const forestRef = ref(storage, "img" + title);
+  getMetadata(forestRef)
+    .then((metadata) => {
+      setImgPath(metadata.fullPath);
+    })
+    .catch((error) => {
+      // console.log("no such file");
+    });
+
   let upVoteFlag = true;
   let downVoteFlag = true;
   let votesCount = upVote - downVote;
@@ -42,11 +58,15 @@ const PostCard = (props) => {
   const [userUpVote, setUserUpVote] = useState(upVoteFlag);
   const [userDownVote, setUserDownVote] = useState(downVoteFlag);
   const [totalVotes, setTotalVotes] = useState(votesCount);
-  const dateObj = createdAt.toDate();
-  const formattedDate = format(dateObj, "yyyy-MM-dd HH:mm:ss");
+  const { sortLatest, sortOldest, sortPopular } = useContext(SortContext);
 
+  const dateObj = createdAt.toDate();
+  const formattedDate = formatDistanceToNow(dateObj, { addSuffix: true });
   useEffect(() => {
-    fetchData();
+    if (!(sortLatest || sortOldest || sortPopular)) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const fetchData = async () => {
     let result = await fetchCollection([], currentUser, "Posts");
@@ -118,7 +138,9 @@ const PostCard = (props) => {
     setUserUpVote(true);
     updateDownVote();
   };
-
+  const openSinglePost = (id) => {
+    navigate("/Post/" + id);
+  };
   return (
     <div style={{ marginBottom: "1%" }}>
       <Container
@@ -205,9 +227,33 @@ const PostCard = (props) => {
               color: "#363535",
             }}
           >
-            {description}
+            {description.startsWith("http") ? (
+              <a href={description} target="_blank" rel="noreferrer">
+                {description}
+              </a>
+            ) : (
+              <Typography>{description}</Typography>
+            )}
           </Box>
-          <ChatBubbleOutlineIcon />
+          <Box>
+            {imgPath ? (
+              <img
+                src={PATH + imgPath + "?&alt=media"}
+                alt="Selected"
+                style={{ maxWidth: "100%", maxHeight: "200px" }}
+              />
+            ) : null}
+          </Box>
+          <Box sx={{ display: "flex", width: "50%" }}>
+            <ChatBubbleOutlineIcon
+              sx={{ mr: "2%" }}
+              onClick={() => openSinglePost(id)}
+            ></ChatBubbleOutlineIcon>
+            <Typography>
+              {" "}
+              {comments && Object.keys(comments).length + " Comments"}
+            </Typography>
+          </Box>
         </Box>
       </Container>
     </div>
