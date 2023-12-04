@@ -46,14 +46,14 @@ const PostCard = (props) => {
       // console.log("no such file");
     });
 
-  let upVoteFlag = true;
-  let downVoteFlag = true;
+  let upVoteFlag = false;
+  let downVoteFlag = false;
   let votesCount = upVote - downVote;
   if (upVoteUsers && upVoteUsers.indexOf(currentUser?.uid) !== -1) {
-    upVoteFlag = false;
+    upVoteFlag = true;
   }
   if (downVoteUsers && downVoteUsers.indexOf(currentUser?.uid) !== -1) {
-    downVoteFlag = false;
+    downVoteFlag = true;
   }
   const [userUpVote, setUserUpVote] = useState(upVoteFlag);
   const [userDownVote, setUserDownVote] = useState(downVoteFlag);
@@ -67,77 +67,163 @@ const PostCard = (props) => {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [totalVotes]);
   const fetchData = async () => {
     let result = await fetchCollection([], currentUser, "Posts");
     setPostData(result);
   };
-  const updateUpVote = async () => {
+  const handleUpVote = async () => {
     const dbRef = doc(db, "Posts", id);
-
-    if (userUpVote) {
-      let updatedVote = upVote + 1;
+    if (!userUpVote && !userDownVote) {
+      setUserUpVote(true);
+      let updatedUpVote = upVote + 1;
+      let updatedUpVoteUsers = [...upVoteUsers, currentUser.uid];
+      await updateDoc(dbRef, {
+        upVote: updatedUpVote,
+        upVoteUsers: updatedUpVoteUsers,
+      });
+      let updatedTotalVotes = updatedUpVote - downVote;
+      setTotalVotes(updatedTotalVotes);
+    } else if (userUpVote && !userDownVote) {
+      setUserUpVote(false);
+      let updatedUpVote = upVote - 1;
+      let updatedUpVoteUsers = upVoteUsers.filter(
+        (userId) => userId !== currentUser.uid
+      );
+      await updateDoc(dbRef, {
+        upVote: updatedUpVote,
+        upVoteUsers: updatedUpVoteUsers,
+      });
+      let updatedTotalVotes = updatedUpVote - downVote;
+      setTotalVotes(updatedTotalVotes);
+    } else {
+      setUserUpVote(true);
+      setUserDownVote(false);
+      let updatedUpVote = upVote + 1;
+      let updatedDownVote = downVote - 1;
       let updatedUpVoteUsers = [...upVoteUsers, currentUser.uid];
       let updatedDownVoteUsers = downVoteUsers.filter(
         (userId) => userId !== currentUser.uid
       );
       await updateDoc(dbRef, {
-        upVote: updatedVote,
-        downVote: downVote,
+        upVote: updatedUpVote,
         upVoteUsers: updatedUpVoteUsers,
+        downVote: updatedDownVote,
         downVoteUsers: updatedDownVoteUsers,
       });
-      setTotalVotes(upVote - downVote + 1);
-    } else {
-      let updatedUpVoteUsers = upVoteUsers.filter(
-        (userId) => userId !== currentUser.uid
-      );
-      let updatedVote = upVote;
-      await updateDoc(dbRef, {
-        upVote: updatedVote,
-        upVoteUsers: updatedUpVoteUsers,
-      });
-      setTotalVotes(upVote - downVote);
+      let updatedTotalVotes = updatedUpVote - updatedDownVote;
+      setTotalVotes(updatedTotalVotes);
     }
   };
-  const updateDownVote = async () => {
+  const handleDownVote = async () => {
     const dbRef = doc(db, "Posts", id);
-
-    if (userDownVote) {
-      let updatedVote = downVote + 1;
+    if (!userUpVote && !userDownVote) {
+      setUserDownVote(true);
+      let updatedDownVote = downVote + 1;
+      let updatedUpDownUsers = [...downVoteUsers, currentUser.uid];
+      await updateDoc(dbRef, {
+        downVote: updatedDownVote,
+        downVoteUsers: updatedUpDownUsers,
+      });
+      let updatedTotalVotes = upVote - updatedDownVote;
+      setTotalVotes(updatedTotalVotes);
+    } else if (!userUpVote && userDownVote) {
+      setUserDownVote(false);
+      let updatedDownVote = downVote - 1;
+      let updatedDownVoteUsers = downVoteUsers.filter(
+        (userId) => userId !== currentUser.uid
+      );
+      await updateDoc(dbRef, {
+        downVote: updatedDownVote,
+        downVoteUsers: updatedDownVoteUsers,
+      });
+      let updatedTotalVotes = upVote - updatedDownVote;
+      setTotalVotes(updatedTotalVotes);
+    } else {
+      setUserDownVote(true);
+      setUserUpVote(false);
+      let updatedUpVote = upVote - 1;
+      let updatedDownVote = downVote + 1;
       let updatedDownVoteUsers = [...downVoteUsers, currentUser.uid];
       let updatedUpVoteUsers = upVoteUsers.filter(
         (userId) => userId !== currentUser.uid
       );
       await updateDoc(dbRef, {
-        downVote: updatedVote,
-        upVote: upVote,
+        upVote: updatedUpVote,
         upVoteUsers: updatedUpVoteUsers,
+        downVote: updatedDownVote,
         downVoteUsers: updatedDownVoteUsers,
       });
-      setTotalVotes(upVote - downVote - 1);
-    } else {
-      let updatedVote = downVote;
-      let updatedDownVoteUsers = downVoteUsers.filter(
-        (userId) => userId !== currentUser.uid
-      );
-      await updateDoc(dbRef, {
-        downVote: updatedVote,
-        downVoteUsers: updatedDownVoteUsers,
-      });
-      setTotalVotes(upVote - downVote);
+      let updatedTotalVotes = updatedUpVote - updatedDownVote;
+      setTotalVotes(updatedTotalVotes);
     }
   };
-  const handleUpvote = () => {
-    setUserUpVote((prev) => !prev);
-    setUserDownVote(true);
-    updateUpVote();
-  };
-  const handleDownvote = () => {
-    setUserDownVote((prev) => !prev);
-    setUserUpVote(true);
-    updateDownVote();
-  };
+  // const updateUpVote = async () => {
+  //   const dbRef = doc(db, "Posts", id);
+
+  //   if (userUpVote) {
+  //     let updatedVote = upVote + 1;
+  //     let updatedUpVoteUsers = [...upVoteUsers, currentUser.uid];
+  //     let updatedDownVoteUsers = downVoteUsers.filter(
+  //       (userId) => userId !== currentUser.uid
+  //     );
+  //     await updateDoc(dbRef, {
+  //       upVote: updatedVote,
+  //       downVote: downVote,
+  //       upVoteUsers: updatedUpVoteUsers,
+  //       downVoteUsers: updatedDownVoteUsers,
+  //     });
+  //     setTotalVotes(upVote - downVote + 1);
+  //   } else {
+  //     let updatedUpVoteUsers = upVoteUsers.filter(
+  //       (userId) => userId !== currentUser.uid
+  //     );
+  //     let updatedVote = upVote;
+  //     await updateDoc(dbRef, {
+  //       upVote: updatedVote,
+  //       upVoteUsers: updatedUpVoteUsers,
+  //     });
+  //     setTotalVotes(upVote - downVote);
+  //   }
+  // };
+  // const updateDownVote = async () => {
+  //   const dbRef = doc(db, "Posts", id);
+
+  //   if (userDownVote) {
+  //     let updatedVote = downVote + 1;
+  //     let updatedDownVoteUsers = [...downVoteUsers, currentUser.uid];
+  //     let updatedUpVoteUsers = upVoteUsers.filter(
+  //       (userId) => userId !== currentUser.uid
+  //     );
+  //     await updateDoc(dbRef, {
+  //       downVote: updatedVote,
+  //       upVote: upVote,
+  //       upVoteUsers: updatedUpVoteUsers,
+  //       downVoteUsers: updatedDownVoteUsers,
+  //     });
+  //     setTotalVotes(upVote - downVote - 1);
+  //   } else {
+  //     let updatedVote = downVote;
+  //     let updatedDownVoteUsers = downVoteUsers.filter(
+  //       (userId) => userId !== currentUser.uid
+  //     );
+  //     await updateDoc(dbRef, {
+  //       downVote: updatedVote,
+  //       downVoteUsers: updatedDownVoteUsers,
+  //     });
+  //     setTotalVotes(upVote - downVote);
+  //   }
+  // };
+  // const handleUpvote = () => {
+  //   setUserUpVote((prev) => !prev);
+  //   setUserDownVote(true);
+  //   updateUpVote();
+  // };
+  // const handleDownvote = () => {
+  //   setUserDownVote((prev) => !prev);
+  //   setUserUpVote(true);
+  //   updateDownVote();
+  // };
   const openSinglePost = (id) => {
     navigate("/Post/" + id);
   };
@@ -161,25 +247,25 @@ const PostCard = (props) => {
             bgcolor: "#dae0e6",
           }}
         >
-          {userUpVote ? (
-            <UploadIcon sx={{ color: "grey" }} onClick={() => handleUpvote()} />
+          {!userUpVote ? (
+            <UploadIcon sx={{ color: "grey" }} onClick={() => handleUpVote()} />
           ) : (
             <UploadIcon
               sx={{ color: "#e65100" }}
-              onClick={() => handleUpvote()}
+              onClick={() => handleUpVote()}
             />
           )}
 
           <div style={{ padding: "10% 0" }}>{totalVotes}</div>
-          {userDownVote ? (
+          {!userDownVote ? (
             <DownloadIcon
               sx={{ color: "grey" }}
-              onClick={() => handleDownvote()}
+              onClick={() => handleDownVote()}
             />
           ) : (
             <DownloadIcon
               sx={{ color: "blue" }}
-              onClick={() => handleDownvote()}
+              onClick={() => handleDownVote()}
             />
           )}
         </Box>
