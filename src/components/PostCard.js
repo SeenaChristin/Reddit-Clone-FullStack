@@ -254,11 +254,14 @@ const PostCard = (props) => {
           }}
         >
           {!userUpVote || !currentUser ? (
-            <UploadIcon sx={{ color: "grey" }} onClick={() => handleUpVote()} />
+            <UploadIcon
+              sx={{ color: "grey", cursor: "pointer" }}
+              onClick={() => handleUpVote()}
+            />
           ) : (
             currentUser && (
               <UploadIcon
-                sx={{ color: "#e65100" }}
+                sx={{ color: "#e65100", cursor: "pointer" }}
                 onClick={() => handleUpVote()}
               />
             )
@@ -267,13 +270,13 @@ const PostCard = (props) => {
           <div style={{ padding: "10% 0" }}>{totalVotes}</div>
           {!userDownVote || !currentUser ? (
             <DownloadIcon
-              sx={{ color: "grey" }}
+              sx={{ color: "grey", cursor: "pointer" }}
               onClick={() => handleDownVote()}
             />
           ) : (
             currentUser && (
               <DownloadIcon
-                sx={{ color: "blue" }}
+                sx={{ color: "blue", cursor: "pointer" }}
                 onClick={() => handleDownVote()}
               />
             )

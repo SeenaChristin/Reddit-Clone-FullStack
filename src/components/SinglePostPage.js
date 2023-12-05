@@ -12,12 +12,12 @@ import { PostContext } from "../utils/PostContext";
 const SinglePostPage = () => {
   const postId = useParams("id");
   const { currentUser } = useAuth();
-  const { postData, setPostData } = useContext(PostContext);
+  const { setPostData } = useContext(PostContext);
   const id = postId.id;
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postData]);
+  }, []);
   const fetchData = async () => {
     let result = await fetchCollection([], currentUser, "Posts");
     setPostData(result);
