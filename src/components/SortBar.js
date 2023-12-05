@@ -32,7 +32,7 @@ const SortBar = () => {
   return (
     <div
       style={{
-        padding: "0% 1% 1% 1%",
+        padding: "1% 1% 1% 1%",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
