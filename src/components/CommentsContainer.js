@@ -18,7 +18,7 @@ const CommentsContainer = (props) => {
 
   const handleAddComment = async () => {
     const dbRef = doc(db, "Posts", id);
-    let userName = currentUser.displayName;
+    let userName = currentUser?.displayName;
     await updateDoc(dbRef, {
       [`comments.${userName}`]: userComment,
     });
@@ -31,37 +31,39 @@ const CommentsContainer = (props) => {
   };
   return (
     <div>
-      <Container
-        sx={{
-          width: "75%",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Typography sx={{ textAlign: "start", mb: "1%", pl: "2%" }}>
-          Comment as : {currentUser.displayName}
-        </Typography>
-        <TextField
-          id="filled-multiline-flexible"
-          label={"What are your thoughts"}
-          multiline
-          rows={5}
-          maxRows={5}
-          variant="filled"
-          onChange={(event) => {
-            setUserComment(event.target.value);
-          }}
-          value={userComment}
-        ></TextField>
-        <Button
-          sx={{ bgcolor: "#dae0e6" }}
-          onClick={() => {
-            handleAddComment();
+      {currentUser && (
+        <Container
+          sx={{
+            width: "75%",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          Comment
-        </Button>
-      </Container>
+          <Typography sx={{ textAlign: "start", mb: "1%", pl: "2%" }}>
+            Comment as : {currentUser?.displayName}
+          </Typography>
+          <TextField
+            id="filled-multiline-flexible"
+            label={"What are your thoughts"}
+            multiline
+            rows={5}
+            maxRows={5}
+            variant="filled"
+            onChange={(event) => {
+              setUserComment(event.target.value);
+            }}
+            value={userComment}
+          ></TextField>
+          <Button
+            sx={{ bgcolor: "#dae0e6" }}
+            onClick={() => {
+              handleAddComment();
+            }}
+          >
+            Comment
+          </Button>
+        </Container>
+      )}
       <CommentCard comments={comments}></CommentCard>
     </div>
   );

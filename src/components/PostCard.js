@@ -73,6 +73,9 @@ const PostCard = (props) => {
     setPostData(result);
   };
   const handleUpVote = async () => {
+    if (!currentUser) {
+      return;
+    }
     const dbRef = doc(db, "Posts", id);
     if (!userUpVote && !userDownVote) {
       setUserUpVote(true);
@@ -116,6 +119,9 @@ const PostCard = (props) => {
     }
   };
   const handleDownVote = async () => {
+    if (!currentUser) {
+      return;
+    }
     const dbRef = doc(db, "Posts", id);
     if (!userUpVote && !userDownVote) {
       setUserDownVote(true);
@@ -247,26 +253,30 @@ const PostCard = (props) => {
             bgcolor: "#dae0e6",
           }}
         >
-          {!userUpVote ? (
+          {!userUpVote || !currentUser ? (
             <UploadIcon sx={{ color: "grey" }} onClick={() => handleUpVote()} />
           ) : (
-            <UploadIcon
-              sx={{ color: "#e65100" }}
-              onClick={() => handleUpVote()}
-            />
+            currentUser && (
+              <UploadIcon
+                sx={{ color: "#e65100" }}
+                onClick={() => handleUpVote()}
+              />
+            )
           )}
 
           <div style={{ padding: "10% 0" }}>{totalVotes}</div>
-          {!userDownVote ? (
+          {!userDownVote || !currentUser ? (
             <DownloadIcon
               sx={{ color: "grey" }}
               onClick={() => handleDownVote()}
             />
           ) : (
-            <DownloadIcon
-              sx={{ color: "blue" }}
-              onClick={() => handleDownVote()}
-            />
+            currentUser && (
+              <DownloadIcon
+                sx={{ color: "blue" }}
+                onClick={() => handleDownVote()}
+              />
+            )
           )}
         </Box>
         <Box
